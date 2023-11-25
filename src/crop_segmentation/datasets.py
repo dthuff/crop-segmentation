@@ -1,8 +1,30 @@
 import os
 from glob import glob
 
-from torch.utils.data import Dataset
+import torch
 from PIL import Image
+from torch.utils.data import Dataset
+from torchvision.transforms import Compose, Resize, ToTensor, ConvertImageDtype
+
+
+def create_dataset(config: dict, mode: str) -> Dataset:
+    if mode not in ["train", "val", "test"]:
+        raise AttributeError(f"Unexpected mode {mode} encountered in create_dataset()")
+    img_dir = os.path.join(config["data"]["data_dir"], mode, "images", "rgb")
+    label_dir = os.path.join(config["data"]["data_dir"], mode, "labels", config["model"]["target_class"])
+    transform = create_transform_composition(config)
+    dataset = RGBImageDataset(img_dir=img_dir, label_dir=label_dir, transform=transform, target_transform=transform)
+    return dataset
+
+
+def create_transform_composition(config):
+    # Transform compose
+    transform_composition = Compose([
+        ToTensor(),
+        Resize(config["model"]["img_dim"], antialias=True),
+        ConvertImageDtype(torch.float)
+    ])
+    return transform_composition
 
 
 class RGBImageDataset(Dataset):

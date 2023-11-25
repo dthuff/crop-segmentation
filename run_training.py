@@ -3,9 +3,8 @@ import os.path
 
 import torch
 from torch.utils.data import DataLoader
-from torchvision.transforms import Compose, Resize, ToTensor, ConvertImageDtype
 
-from crop_segmentation.dataload import RGBImageDataset
+from crop_segmentation.datasets import create_dataset
 from crop_segmentation.loss import IoULoss
 from crop_segmentation.model import UNet
 from crop_segmentation.train import train_loop, val_loop, parse_training_config
@@ -25,32 +24,12 @@ if __name__ == "__main__":
     if not os.path.exists(config["data"]["save_dir"]):
         os.makedirs(config["data"]["save_dir"])
 
-    # Transform compose
-    transform_composition = Compose([
-        ToTensor(),
-        Resize(config["model"]["img_dim"], antialias=True),
-        ConvertImageDtype(torch.float)
-    ])
+    # Everything below this line should be encapsulated into run_training
+    train_dataset = create_dataset(config, "train")
+    val_dataset = create_dataset(config, "val")
 
-    # Dataset and loaders
-    train_dataset = RGBImageDataset(img_dir=os.path.join(config["data"]["data_dir"], "train", "images", "rgb"),
-                                    label_dir=os.path.join(config["data"]["data_dir"], "train", "labels", config["model"]["target_class"]),
-                                    transform=transform_composition,
-                                    target_transform=transform_composition)
-
-    val_dataset = RGBImageDataset(img_dir=os.path.join(config["data"]["data_dir"], "val", "images", "rgb"),
-                                  label_dir=os.path.join(config["data"]["data_dir"], "val", "labels", config["model"]["target_class"]),
-                                  transform=transform_composition,
-                                  target_transform=transform_composition
-                                  )
-
-    train_dataloader = DataLoader(dataset=train_dataset,
-                                  batch_size=config["model"]["batch_size"],
-                                  shuffle=True)
-
-    val_dataloader = DataLoader(dataset=val_dataset,
-                                batch_size=config["model"]["batch_size"],
-                                shuffle=True)
+    train_dataloader = DataLoader(dataset=train_dataset, batch_size=config["model"]["batch_size"], shuffle=True)
+    val_dataloader = DataLoader(dataset=val_dataset, batch_size=config["model"]["batch_size"], shuffle=True)
 
     # Init model and optimizer
     model = UNet(img_dim=config["model"]["img_dim"])
@@ -63,7 +42,7 @@ if __name__ == "__main__":
     start_epoch = 0
 
     # Training loop
-    for t in range(start_epoch, config["model"]["max_epochs"]):
+    for t in range(config["model"]["max_epochs"]):
         print(f"Epoch {t}\n-------------------------------")
         train_loss = train_loop(dataloader=train_dataloader,
                                 model=model,
