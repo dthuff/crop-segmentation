@@ -1,6 +1,16 @@
 import torch
+import yaml
 
 scaler = torch.cuda.amp.GradScaler()
+
+
+def parse_training_config(config_path: str):
+    with open(config_path, "r") as stream:
+        try:
+            ll = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+    return ll
 
 
 def train_loop(dataloader, model, loss_fn, optimizer, amp_on):

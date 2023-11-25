@@ -1,0 +1,16 @@
+model:
+  batch_size: 64
+  target_class: "weed_cluster"
+  channels: 3
+  img_dim: 128  # Must be a factor of 16 (base UNet has 4 maxpools in encoder)
+  learning_rate: 0.001
+  max_epochs: 200
+  weight_decay: 5.e-7
+  resume: False  # Resume training from best_epoch.tar?
+  use_amp: False  # Use automatic mixed precision?
+
+data:
+  data_dir: "/home/daniel/datasets/Agriculture-Vision-2021"
+  save_dir: "/home/daniel/Projects/crop_segmentation/saved_models"
+  train_val_test_split: [0.8, 0.1, 0.1]
+
