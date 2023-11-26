@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from crop_segmentation.datasets import create_dataset
-from crop_segmentation.loss import IoULoss
+from crop_segmentation.loss import IoULoss, DiceLoss, MulticlassDiceLoss
 from crop_segmentation.model import UNet
 from crop_segmentation.train import train_loop, val_loop, parse_training_config
 
@@ -42,14 +42,15 @@ if __name__ == "__main__":
 
     # Training loop
     for t in range(config["model"]["max_epochs"]):
-        print(f"Epoch {t}\n-------------------------------")
+        print(f"\n----\nEpoch {t}\n----")
         train_loss = train_loop(dataloader=train_dataloader,
                                 model=model,
-                                loss_fn=IoULoss(),
+                                loss_fn=MulticlassDiceLoss(2, 1),
                                 optimizer=optimizer,
                                 amp_on=config["model"]["use_amp"])
 
         val_loss = val_loop(dataloader=val_dataloader,
                             model=model,
-                            loss_fn=IoULoss(),
-                            epoch_number=t)
+                            loss_fn=MulticlassDiceLoss(2, 1),
+                            epoch_number=t,
+                            save_dir=config["data"]["save_dir"])

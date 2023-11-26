@@ -1,5 +1,7 @@
 import torch
 import yaml
+from crop_segmentation.plotting import plot_examples
+
 
 scaler = torch.cuda.amp.GradScaler()
 
@@ -61,7 +63,7 @@ def train_loop(dataloader, model, loss_fn, optimizer, amp_on):
     return total_loss / num_batches
 
 
-def val_loop(dataloader, model, loss_fn, epoch_number):
+def val_loop(dataloader, model, loss_fn, epoch_number, save_dir: str):
     """VAL_LOOP - Runs validation for one epoch
 
     Args:
@@ -87,13 +89,10 @@ def val_loop(dataloader, model, loss_fn, epoch_number):
             y_pred = model(X)
             loss += loss_fn(y, y_pred).item()
 
-            """
             # Plot a montage of X and y_pred comparisons for the first batch
-            if epoch_number % 10 == 0 and not plotted_this_epoch:
-                plot_examples(X=X.cpu(),
-                              y_pred=y_pred.cpu(),
-                              plot_path="./saved_models/validation_images/epoch_" + str(epoch_number) + ".png")
+            if epoch_number % 2 == 0 and not plotted_this_epoch:
+                plot_examples(X=X.cpu(), y=y.cpu(), y_pred=y_pred.cpu(),
+                              plot_path=f"{save_dir}/epoch_{str(epoch_number)}.png")
                 plotted_this_epoch = True
-            """
 
     return loss / num_batches

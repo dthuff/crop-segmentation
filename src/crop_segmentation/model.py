@@ -117,8 +117,8 @@ class Decoder(nn.Module):
         self.upsize2 = UpConvBlock(channels_in=64, channels_out=32, kernel_size=1, scale_factor=2)
         self.res_block2 = ResNetBlock(channels=32, kernel_size=3)
 
-        self.upsize1 = UpConvBlock(channels_in=32, channels_out=1, kernel_size=1, scale_factor=2)
-        self.res_block1 = ResNetBlock(channels=1, kernel_size=3)
+        self.upsize1 = UpConvBlock(channels_in=32, channels_out=2, kernel_size=1, scale_factor=2)
+        self.res_block1 = ResNetBlock(channels=2, kernel_size=3)  # We want 2 output channels
 
     def forward(self, x):
         # x4_ = x.view(-1, 256, int(self.img_dim / 16), int(self.img_dim / 16))
