@@ -10,10 +10,10 @@ from torchvision.transforms import Compose, Resize, ToTensor, ConvertImageDtype
 def create_dataset(config: dict, mode: str) -> Dataset:
     if mode not in ["train", "val", "test"]:
         raise AttributeError(f"Unexpected mode {mode} encountered in create_dataset()")
-    img_dir = os.path.join(config["data"]["data_dir"], mode, "images", "rgb")
-    label_dir = os.path.join(config["data"]["data_dir"], mode, "labels", config["model"]["target_class"])
+    img_dir = config["data"]["train_image_dir"]
+    label_dir = os.path.join(config["data"]["train_labels_dir"], config["data"]["target_class"])
     transform = create_transform_composition(config)
-    dataset = RGBImageDataset(img_dir=img_dir, label_dir=label_dir, transform=transform, target_transform=transform)
+    dataset = RGBImageDataset(img_dir=img_dir, label_dir=label_dir, transform=transform)
     return dataset
 
 
@@ -29,23 +29,23 @@ def create_transform_composition(config):
 
 class RGBImageDataset(Dataset):
     def __init__(self, img_dir, label_dir, transform=None, target_transform=None):
-        self.img_dir = img_dir
         self.label_dir = label_dir
-        self.img_list = glob(os.path.join(self.img_dir, '*.jpg'))
+        self.label_list = glob(os.path.join(self.label_dir, '*.png'))
+        self.img_dir = img_dir
         self.transform = transform
-        self.target_transform = target_transform
 
     def __len__(self):
-        return len(self.img_list)
+        return len(self.label_list)
 
     def __getitem__(self, idx):
-        img_path = os.path.join(self.img_dir, self.img_list[idx])
-        _, f = os.path.split(img_path)
-        label_path = os.path.join(self.label_dir, f.replace(".jpg", ".png"))
-        image = Image.open(img_path)
-        label = Image.open(label_path)  # Labels are png, images are jpg *shrug*
+        label_path = os.path.join(self.label_dir, self.label_list[idx])
+        image_path = os.path.join(self.img_dir, os.path.basename(label_path).replace(".png", ".jpg"))
+
+        label = Image.open(label_path)
+        image = Image.open(image_path)
+
         if self.transform:
+            label = self.transform(label)
             image = self.transform(image)
-        if self.target_transform:
-            label = self.target_transform(label)
+
         return image, label

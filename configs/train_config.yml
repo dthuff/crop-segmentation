@@ -1,6 +1,5 @@
 model:
   batch_size: 64
-  target_class: "water"
   channels: 3
   img_dim: 128  # Must be a factor of 16 (base UNet has 4 maxpools in encoder)
   learning_rate: 0.001
@@ -10,7 +9,9 @@ model:
   use_amp: False  # Use automatic mixed precision?
 
 data:
-  data_dir: "/home/daniel/datasets/Agriculture-Vision-2021"
+  target_class: "water"
+  train_image_dir: "/home/daniel/datasets/Agriculture-Vision-2021/train/images/rgb"
+  train_labels_dir: "/home/daniel/datasets/Agriculture-Vision-2021/train/labels_filtered"
   save_dir: "/home/daniel/saved_models/Agriculture-Vision-2021"
   train_val_test_split: [0.8, 0.1, 0.1]
 

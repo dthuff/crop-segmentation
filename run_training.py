@@ -24,7 +24,6 @@ if __name__ == "__main__":
     if not os.path.exists(config["data"]["save_dir"]):
         os.makedirs(config["data"]["save_dir"])
 
-    # Everything below this line should be encapsulated into run_training
     train_dataset = create_dataset(config, "train")
     val_dataset = create_dataset(config, "val")
 

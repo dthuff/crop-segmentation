@@ -4,7 +4,6 @@ version = "0.1.0"
 description = "Segmentation of aerial images of crops using CNNs."
 authors = ["Daniel <huffdanielt@gmail.com>"]
 readme = "README.md"
-packages = [{include = "crop_segmentation", from= "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
