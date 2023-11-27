@@ -31,7 +31,7 @@ def plot_examples(X, y, y_pred, plot_path):
         pred_mask = pred_mask.cpu().detach().squeeze().numpy()
         axs[3 * i].imshow(img.transpose(1, 2, 0), cmap='inferno', vmin=0, vmax=1)
         axs[(3 * i) + 1].imshow(gt_mask, cmap='grey', vmin=0, vmax=1)
-        axs[(3 * i) + 2].imshow(pred_mask[1, :, :], cmap='grey', vmin=0, vmax=pred_mask[1, :, :].max())
+        axs[(3 * i) + 2].imshow(pred_mask[1, :, :], cmap='grey', vmin=pred_mask[1, :, :].min(), vmax=pred_mask[1, :, :].max())
 
     # Hide axes and whitespace
     for a in axs:
@@ -61,27 +61,13 @@ def plot_and_save_loss(loss_dict, save_dir):
 
     """
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 6))
-    ax2 = ax.twinx()
 
-    ax.plot(loss_dict["TRAIN_LOSS_KL"], c='blue')
-    ax.plot(loss_dict["VAL_LOSS_KL"], c='cornflowerblue')
-    ax2.plot(loss_dict["TRAIN_LOSS_RECON"], c='red')
-    ax2.plot(loss_dict["VAL_LOSS_RECON"], c='lightcoral')
+    ax.plot(loss_dict["TRAIN_LOSS"], c='blue')
+    ax.plot(loss_dict["VAL_LOSS"], c='cornflowerblue')
 
-    ax.set_yscale("log")
-    ax2.set_yscale("log")
-    ax.set_ylabel("KL Loss")
-    ax2.set_ylabel("Recon Loss")
+    ax.set_ylabel("Loss")
     ax.set_xlabel("Epoch")
-    fig.legend(["KL loss (train)", "KL loss (val)", "Recon loss (train)", "Recon loss (val)"],
+    fig.legend(["Loss (train)", "Loss (val)"],
                bbox_to_anchor=(0.9, 0.85))
-    plt.savefig(save_dir + "loss.png", dpi=150)
+    plt.savefig(f"{save_dir}/loss.png", dpi=150)
     plt.close(fig)
-
-def plot_model_architecture(model, batch_size, channels, img_dim, save_dir):
-    # Dummy tensor for batch size 16, 1 channel, image size 128 x 128.
-    x = torch.randn(batch_size, channels, img_dim, img_dim)
-    x = x.to(device="cuda")
-    y = model(x)
-
-    make_dot(y, params=dict(model.named_parameters())).render(save_dir + "vae.png")

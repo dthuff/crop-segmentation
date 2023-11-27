@@ -22,7 +22,7 @@ class MyTestCase(unittest.TestCase):
         loss_value = dice_loss_fn(y_true, y_pred)
 
         # ASSERT
-        torch.testing.assert_close(loss_value, torch.tensor(-1.0)) # add assertion here
+        torch.testing.assert_close(loss_value, torch.tensor(-1.0))
 
 
 if __name__ == '__main__':

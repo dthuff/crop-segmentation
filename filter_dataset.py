@@ -7,7 +7,7 @@ import torch
 from PIL import Image
 from torchvision.transforms import Compose, Resize, ToTensor, ConvertImageDtype
 
-data_dir = "/home/daniel/datasets/Agriculture-Vision-2021/train/labels"
+data_dir = "/home/daniel/datasets/Agriculture-Vision-2021/val/labels"
 data_dir_filtered = data_dir + "_filtered"
 
 classes = os.listdir(data_dir)

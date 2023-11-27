@@ -1,11 +1,8 @@
-import numpy as np
 import torch
 import torch.nn as nn
 
-
-# Classification loss. Binary CE or similar. See about class prevalence/weighting
-
 # Challenge eval metric is mean IoU
+
 
 class IoULoss(nn.Module):
     """
@@ -47,6 +44,44 @@ class DiceLoss(nn.Module):
         dice = 2 * intersection / (y.sum() + y_pred.sum())
 
         return -1 * dice
+
+
+class DiceLoss2(nn.Module):
+    def __init__(self, weight=None, size_average=True):
+        super(DiceLoss2, self).__init__()
+
+    def forward(self, y_true, y_pred, smooth=1):
+        # comment out if your model contains a sigmoid or equivalent activation layer
+        y_pred = nn.functional.sigmoid(y_pred)
+
+        # flatten label and prediction tensors
+        y_pred = y_pred.view(-1)
+        y_true = y_true.contiguous().view(-1)
+
+        intersection = (y_pred * y_true).sum()
+        dice = (2. * intersection + smooth) / (y_pred.sum() + y_true.sum() + smooth)
+
+        return 1 - dice
+
+
+class DiceBCELoss(nn.Module):
+    def __init__(self, weight=None, size_average=True):
+        super(DiceBCELoss, self).__init__()
+
+    def forward(self, y_true, y_pred, smooth=1):
+        # comment out if your model contains a sigmoid or equivalent activation layer
+        y_pred = torch.nn.functional.sigmoid(y_pred)
+
+        # flatten label and prediction tensors
+        y_pred = y_pred.view(-1)
+        y_true = y_true.contiguous().view(-1)
+
+        intersection = (y_pred * y_true).sum()
+        dice_loss = 1 - (2. * intersection + smooth) / (y_pred.sum() + y_true.sum() + smooth)
+        bce = torch.nn.functional.binary_cross_entropy(y_pred.float(), y_true.float(), reduction='mean')
+        dice_bce = bce + dice_loss
+
+        return dice_bce
 
 
 class MulticlassDiceLoss(nn.Module):

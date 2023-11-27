@@ -10,10 +10,21 @@ from torchvision.transforms import Compose, Resize, ToTensor, ConvertImageDtype
 def create_dataset(config: dict, mode: str) -> Dataset:
     if mode not in ["train", "val", "test"]:
         raise AttributeError(f"Unexpected mode {mode} encountered in create_dataset()")
-    img_dir = config["data"]["train_image_dir"]
-    label_dir = os.path.join(config["data"]["train_labels_dir"], config["data"]["target_class"])
-    transform = create_transform_composition(config)
-    dataset = RGBImageDataset(img_dir=img_dir, label_dir=label_dir, transform=transform)
+    else:
+        transform = create_transform_composition(config)
+
+        match mode:
+            case "train":
+                img_dir = config["data"]["train_image_dir"]
+                label_dir = os.path.join(config["data"]["train_labels_dir"], config["data"]["target_class"])
+                dataset = RGBImageDataset(img_dir=img_dir, label_dir=label_dir, transform=transform)
+            case "val":
+                img_dir = config["data"]["val_image_dir"]
+                label_dir = os.path.join(config["data"]["val_labels_dir"], config["data"]["target_class"])
+                dataset = RGBImageDataset(img_dir=img_dir, label_dir=label_dir, transform=transform)
+            case _:
+                dataset = []
+
     return dataset
 
 

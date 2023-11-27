@@ -1,8 +1,8 @@
 model:
-  batch_size: 64
+  batch_size: 32
   channels: 3
-  img_dim: 128  # Must be a factor of 16 (base UNet has 4 maxpools in encoder)
-  learning_rate: 0.001
+  img_dim: 192  # Must be a factor of 16 (base UNet has 4 maxpools in encoder)
+  learning_rate: 0.000001
   max_epochs: 200
   weight_decay: 5.e-7
   resume: False  # Resume training from best_epoch.tar?
@@ -12,6 +12,8 @@ data:
   target_class: "water"
   train_image_dir: "/home/daniel/datasets/Agriculture-Vision-2021/train/images/rgb"
   train_labels_dir: "/home/daniel/datasets/Agriculture-Vision-2021/train/labels_filtered"
+  val_image_dir: "/home/daniel/datasets/Agriculture-Vision-2021/val/images/rgb"
+  val_labels_dir: "/home/daniel/datasets/Agriculture-Vision-2021/val/labels_filtered"
   save_dir: "/home/daniel/saved_models/Agriculture-Vision-2021"
   train_val_test_split: [0.8, 0.1, 0.1]
 

@@ -15,7 +15,7 @@ def parse_training_config(config_path: str):
     return ll
 
 
-def train_loop(dataloader, model, loss_fn, optimizer, amp_on):
+def train_loop(dataloader, model, loss_fn, optimizer, epoch_number, save_dir: str):
     """TRAIN_LOOP - Runs training for one epoch
 
     Args:
@@ -23,7 +23,6 @@ def train_loop(dataloader, model, loss_fn, optimizer, amp_on):
         model (nn.Module): model object
         loss_fn (nn.Module): loss
         optimizer (torch.Optimizer): model optimizer
-        amp_on (Boolean): enable automatic mixed precision
 
     Returns:
         mean_loss_kl
@@ -40,15 +39,17 @@ def train_loop(dataloader, model, loss_fn, optimizer, amp_on):
         X = X.cuda()
         y = y.cuda()
 
-        # Compute prediction and loss
-        with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=amp_on):
-            y_pred = model(X)
-            batch_loss = loss_fn(y, y_pred)
+        # One hot encode labels
+        y_one_hot = torch.nn.functional.one_hot(y.long(), num_classes=2)
+        y_one_hot = y_one_hot.squeeze().permute(0, 3, 1, 2)
 
-        # Backpropagation - with GradScaler for optional automatic mixed precision
-        scaler.scale(batch_loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        # Compute prediction and loss
+        y_pred = model(X)
+        batch_loss = loss_fn(y_one_hot, y_pred)
+
+        # Backpropagation
+        batch_loss.backward()
+        optimizer.step()
         optimizer.zero_grad()
 
         # Add this batch loss to total loss
@@ -58,6 +59,11 @@ def train_loop(dataloader, model, loss_fn, optimizer, amp_on):
         if batch % 10 == 0:
             loss, current = batch_loss.item(), batch * len(X)
             print(f"Total loss: {loss:.2f}  [{current:>2d}/{size:>2d}]")
+
+        # Plot a montage of X and y_pred comparisons for the first batch
+        if batch == 0:
+            plot_examples(X=X.cpu(), y=y.cpu(), y_pred=y_pred.cpu(),
+                          plot_path=f"{save_dir}/train_epoch_{str(epoch_number)}.png")
 
     # Return the mean per-batch loss
     return total_loss / num_batches
@@ -85,9 +91,13 @@ def val_loop(dataloader, model, loss_fn, epoch_number, save_dir: str):
             X = X.cuda()
             y = y.cuda()
 
+            # One hot encode labels
+            y_one_hot = torch.nn.functional.one_hot(y.long(), num_classes=2)
+            y_one_hot = y_one_hot.squeeze().permute(0, 3, 1, 2)
+
             # Compute prediction and loss
             y_pred = model(X)
-            loss += loss_fn(y, y_pred).item()
+            loss += loss_fn(y_one_hot, y_pred).item()
 
             # Plot a montage of X and y_pred comparisons for the first batch
             if epoch_number % 2 == 0 and not plotted_this_epoch:

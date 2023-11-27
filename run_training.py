@@ -5,8 +5,9 @@ import torch
 from torch.utils.data import DataLoader
 
 from crop_segmentation.datasets import create_dataset
-from crop_segmentation.loss import IoULoss, DiceLoss, MulticlassDiceLoss
+from crop_segmentation.loss import DiceLoss2, DiceBCELoss
 from crop_segmentation.model import UNet
+from crop_segmentation.plotting import plot_and_save_loss
 from crop_segmentation.train import train_loop, val_loop, parse_training_config
 
 
@@ -33,24 +34,30 @@ if __name__ == "__main__":
     # Init model and optimizer
     model = UNet(img_dim=config["model"]["img_dim"])
     model.to(device=torch.device(f'cuda:{cl_args.device}'))
-
     optimizer = torch.optim.Adam(model.parameters(),
                                  lr=config["model"]["learning_rate"],
                                  weight_decay=config["model"]["weight_decay"])
 
-    start_epoch = 0
+    loss_dict = {"TRAIN_LOSS": [],
+                 "VAL_LOSS": []}
 
     # Training loop
     for t in range(config["model"]["max_epochs"]):
         print(f"\n----\nEpoch {t}\n----")
         train_loss = train_loop(dataloader=train_dataloader,
                                 model=model,
-                                loss_fn=MulticlassDiceLoss(2, 1),
+                                loss_fn=DiceBCELoss(),
                                 optimizer=optimizer,
-                                amp_on=config["model"]["use_amp"])
+                                epoch_number=t,
+                                save_dir=config["data"]["save_dir"])
 
         val_loss = val_loop(dataloader=val_dataloader,
                             model=model,
-                            loss_fn=MulticlassDiceLoss(2, 1),
+                            loss_fn=DiceBCELoss(),
                             epoch_number=t,
                             save_dir=config["data"]["save_dir"])
+
+        loss_dict["TRAIN_LOSS"].append(train_loss)
+        loss_dict["VAL_LOSS"].append(val_loss)
+
+        plot_and_save_loss(loss_dict, config["data"]["save_dir"])
