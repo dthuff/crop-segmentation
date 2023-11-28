@@ -3,7 +3,7 @@ model:
   channels: 3
   img_dim: 192  # Must be a factor of 16 (base UNet has 4 maxpools in encoder)
   learning_rate: 0.000001
-  max_epochs: 200
+  max_epochs: 2000
   weight_decay: 5.e-7
   resume: False  # Resume training from best_epoch.tar?
   use_amp: False  # Use automatic mixed precision?

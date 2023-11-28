@@ -5,6 +5,7 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import Compose, Resize, ToTensor, ConvertImageDtype
+from torchvision.transforms import v2
 
 
 def create_dataset(config: dict, mode: str) -> Dataset:
@@ -29,13 +30,13 @@ def create_dataset(config: dict, mode: str) -> Dataset:
 
 
 def create_transform_composition(config):
-    # Transform compose
-    transform_composition = Compose([
-        ToTensor(),
-        Resize(config["model"]["img_dim"], antialias=True),
+    transforms = v2.Compose([
+        v2.ToImage(),  # Convert to tensor, only needed if you had a PIL image
+        v2.RandomResizedCrop(size=(config["model"]["img_dim"], config["model"]["img_dim"]), antialias=True),
+        v2.RandomAffine(degrees=180, translate=(0.3, 0.3)),
         ConvertImageDtype(torch.float)
     ])
-    return transform_composition
+    return transforms
 
 
 class RGBImageDataset(Dataset):
@@ -55,8 +56,13 @@ class RGBImageDataset(Dataset):
         label = Image.open(label_path)
         image = Image.open(image_path)
 
+        label = ToTensor()(label)
+        image = ToTensor()(image)
+
         if self.transform:
-            label = self.transform(label)
-            image = self.transform(image)
+            label_image_stack = torch.concatenate((label, image), dim=0)
+            label_image_stack = self.transform(label_image_stack)
+            label = label_image_stack[0, :, :].unsqueeze_(0)
+            image = label_image_stack[1:, :, :]
 
         return image, label
