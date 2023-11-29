@@ -40,14 +40,13 @@ class DiceLoss(nn.Module):
         y_pred = y_pred.view(-1)
 
         intersection = (y * y_pred).sum()
-
         dice = 2 * intersection / (y.sum() + y_pred.sum())
 
         return -1 * dice
 
 
 class DiceLoss2(nn.Module):
-    def __init__(self, weight=None, size_average=True):
+    def __init__(self):
         super(DiceLoss2, self).__init__()
 
     def forward(self, y_true, y_pred, smooth=1):
@@ -65,14 +64,12 @@ class DiceLoss2(nn.Module):
 
 
 class DiceBCELoss(nn.Module):
-    def __init__(self, weight=None, size_average=True):
+    def __init__(self):
         super(DiceBCELoss, self).__init__()
 
     def forward(self, y_true, y_pred, smooth=1):
-        # comment out if your model contains a sigmoid or equivalent activation layer
         y_pred = torch.nn.functional.sigmoid(y_pred)
 
-        # flatten label and prediction tensors
         y_pred = y_pred.view(-1)
         y_true = y_true.contiguous().view(-1)
 

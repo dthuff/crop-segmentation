@@ -4,16 +4,18 @@ import os
 
 def plot_examples(X, y, y_pred, plot_path):
     """
-
+    Plot examples tiled as image, GT, pred.
     Parameters
     ----------
-    X : torch.Tensor
-    y : torch.Tensor
-    y_pred : torch.Tensor
+    X: torch.Tensor
+        A batch of images. BCWH.
+    y: torch.Tensor
+        A batch of GT labels. B1WH.
+    y_pred: torch.Tensor
+        A batch of pred labels. B1WH.
     plot_path: str
-
+        Full path of image to save.
     """
-    # Limit plot to 32 slices -
     if X.shape[0] > 27:
         X = X[:27, :, :, :]
         y = y[:27, :, :, :]
@@ -31,9 +33,8 @@ def plot_examples(X, y, y_pred, plot_path):
         pred_mask = pred_mask.cpu().detach().squeeze().numpy()
         axs[3 * i].imshow(img.transpose(1, 2, 0), cmap='inferno', vmin=0, vmax=1)
         axs[(3 * i) + 1].imshow(gt_mask, cmap='grey', vmin=0, vmax=1)
-        axs[(3 * i) + 2].imshow(pred_mask[1, :, :], cmap='grey', vmin=pred_mask[1, :, :].min(), vmax=pred_mask[1, :, :].max())
+        axs[(3 * i) + 2].imshow(pred_mask[1, :, :], cmap='grey', vmin=0, vmax=1)
 
-    # Hide axes and whitespace
     for a in axs:
         a.set_xticklabels([])
         a.set_yticklabels([])
@@ -50,16 +51,17 @@ def plot_examples(X, y, y_pred, plot_path):
     print(f"Saved example image to: {plot_path}")
 
 
-def plot_and_save_loss(loss_dict, save_dir):
+def plot_and_save_loss(loss_dict: dict, plot_path: str):
+    """
+    Plot and save train and val loss dicts
+    Parameters
+    ----------
+    loss_dict: dict
+        Loss dict with keys "TRAIN_LOSS" and "VAL_LOSS"
+    plot_path: str
+        Full path to image to save
     """
 
-    Args:
-        loss_dict (dictionary) : dictionary containing lists of loss values per epoch
-        save_dir (string) : path to save directory
-
-    Returns:
-
-    """
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 6))
 
     ax.plot(loss_dict["TRAIN_LOSS"], c='blue')
@@ -69,5 +71,11 @@ def plot_and_save_loss(loss_dict, save_dir):
     ax.set_xlabel("Epoch")
     fig.legend(["Loss (train)", "Loss (val)"],
                bbox_to_anchor=(0.9, 0.85))
-    plt.savefig(f"{save_dir}/loss.png", dpi=150)
+
+    # Create the save_dir if it does not exist
+    save_dir, _ = os.path.split(plot_path)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    plt.savefig(plot_path, dpi=150)
     plt.close(fig)
